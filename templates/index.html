@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>CADPS Scheduler Simulation</title>
+
     <style>
         body {
             font-family: "Segoe UI", Arial, sans-serif;
@@ -11,7 +12,7 @@
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 30px auto;
             padding: 20px;
         }
@@ -41,16 +42,18 @@
             padding-bottom: 8px;
         }
 
+        /* PROCESS INPUT GRID */
         .process-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
+            gap: 12px;
             align-items: center;
             margin-bottom: 10px;
         }
 
-        .process-grid label {
+        .process-grid.header {
             font-weight: bold;
+            color: #333;
         }
 
         input[type="number"] {
@@ -60,7 +63,7 @@
             border: 1px solid #ccc;
         }
 
-        .checkbox-group {
+        .checkbox {
             text-align: center;
         }
 
@@ -68,17 +71,18 @@
             background: #007bff;
             color: white;
             border: none;
-            padding: 10px 25px;
+            padding: 10px 28px;
             font-size: 16px;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         button:hover {
             background: #0056b3;
         }
 
+        /* TABLES */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -100,6 +104,7 @@
             font-weight: bold;
         }
 
+        /* GANTT */
         .gantt {
             display: flex;
             flex-wrap: wrap;
@@ -115,10 +120,10 @@
             font-size: 13px;
         }
 
-        .footer-note {
-            margin-top: 10px;
+        .note {
             font-size: 13px;
             color: #555;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -129,20 +134,20 @@
     <h1>Context-Aware Dynamic Priority Scheduling (CADPS)</h1>
     <p class="subtitle">Web-Based CPU Scheduling Simulation & Comparison</p>
 
-    <!-- INPUT CARD -->
+    <!-- PROCESS CONFIGURATION -->
     <div class="card">
         <h2>Process Configuration</h2>
         <p><b>Number of Processes:</b> 4 (fixed)</p>
 
         <form method="post">
 
-            <div class="process-grid">
-                <label>Process</label>
-                <label>Arrival</label>
-                <label>Burst</label>
-                <label>Priority</label>
-                <label>I/O Bound</label>
-                <label>Foreground</label>
+            <div class="process-grid header">
+                <div>Process</div>
+                <div>Arrival</div>
+                <div>Burst</div>
+                <div>Priority</div>
+                <div>I/O Bound</div>
+                <div>Foreground</div>
             </div>
 
             {% for i in range(4) %}
@@ -158,12 +163,12 @@
                 <input type="number" name="priority{{i}}"
                        value="{{ form_data.get('priority' ~ i, 2) if form_data else 2 }}">
 
-                <div class="checkbox-group">
+                <div class="checkbox">
                     <input type="checkbox" name="io{{i}}"
                            {% if form_data and form_data.get('io' ~ i) %}checked{% endif %}>
                 </div>
 
-                <div class="checkbox-group">
+                <div class="checkbox">
                     <input type="checkbox" name="fg{{i}}"
                            {% if form_data and form_data.get('fg' ~ i) %}checked{% endif %}>
                 </div>
@@ -175,7 +180,7 @@
     </div>
 
     {% if results %}
-    <!-- RESULTS CARD -->
+    <!-- COMPARISON RESULTS -->
     <div class="card">
         <h2>Comparison Results</h2>
 
@@ -200,7 +205,7 @@
         </table>
     </div>
 
-    <!-- GANTT CARD -->
+    <!-- GANTT CHART -->
     <div class="card">
         <h2>CADPS Execution Timeline (Gantt Chart)</h2>
 
@@ -210,8 +215,45 @@
             {% endfor %}
         </div>
 
-        <p class="footer-note">
-            Each block represents one unit of CPU time. Frequent switching indicates preemption and dynamic priority updates.
+        <p class="note">
+            Each block represents one unit of CPU time. Frequent switching indicates preemption and
+            dynamic priority recalculation.
+        </p>
+    </div>
+
+    <!-- CONTEXT EVALUATION -->
+    <div class="card">
+        <h2>CADPS Context Evaluation (Modeled Parameters)</h2>
+
+        <table>
+            <tr>
+                <th>Process</th>
+                <th>Waiting Time</th>
+                <th>Remaining Burst</th>
+                <th>CPU Usage (est.)</th>
+                <th>Energy Cost (est.)</th>
+                <th>I/O Bound</th>
+                <th>Foreground</th>
+                <th>Dynamic Priority</th>
+            </tr>
+
+            {% for pid, ctx in results["CADPS"].context.items() %}
+            <tr>
+                <td>{{ pid }}</td>
+                <td>{{ ctx.waiting }}</td>
+                <td>{{ ctx.remaining }}</td>
+                <td>{{ ctx.cpu_usage }}</td>
+                <td>{{ ctx.energy }}</td>
+                <td>{{ ctx.io }}</td>
+                <td>{{ ctx.fg }}</td>
+                <td><b>{{ ctx.dynamic_priority }}</b></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <p class="note">
+            CPU usage and energy values are <b>modeled estimates</b> derived from process characteristics
+            and are displayed to improve transparency of the CADPS decision process.
         </p>
     </div>
     {% endif %}
